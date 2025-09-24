@@ -1,0 +1,42 @@
+/*
+CSS theme "dark" for store manager
+SPDX - License - Identifier: LGPL - 3.0 - or -later
+Auteurs : Gabriel C. Ullmann, Fabio Petrillo, 2025
+*/
+
+header {
+    display: flex;
+}
+
+header img {
+    width: 50px;
+    height: 48px;
+    margin-right: 20px
+}
+
+body {
+    color: #ffffff;
+    background-color: #323232;
+    padding: 10px;
+}
+
+ul {
+    filter: invert(1);
+    max-width: 500px;
+}
+
+form {
+    max-width: 500px;
+}
+
+#breadcrumbs {
+    color: #000000;
+    filter: invert(1);
+}
+
+.table {
+    margin: 0 0 30px;
+    max-width: 500px;
+    filter: invert(1);
+}
+

@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+.venv
+
+# Distribution / packaging
+.build/
+dist/
+*.egg-info/
+
+# pyenv
+.python-version
+
+# VS Code
+.vscode/
+
+# Docker
+*.log
+
+# macOS
+.DS_Store
+
+# pytest cache
+.pytest_cache/

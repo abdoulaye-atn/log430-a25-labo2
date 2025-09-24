@@ -1,0 +1,63 @@
+@startuml
+    class User {
+        + id: int
+        + name: string
+        + email: string
+    }
+
+    class Product {
+        + id: int
+        + name: string
+        + sku: string
+        + price: float
+    }
+
+    class OrderItem {
+        + id: int
+        + order_id: int
+        + product_id: int
+        + quantity: int
+        + unit_price: float
+    }
+
+    class Order {
+        + id: int
+        + user_id: int
+        + total_amount: float
+    }
+
+    class WriteOrder {
+        + add_order(int, OrderItem[]) : int
+        + delete_order(int) : int
+        + add_order_to_redis(Order) : void
+        + delete_order_from_redis(int) : void
+        + sync_all_orders_to_redis() : void
+    }
+
+    class ReadOrder {
+        + get_order_by_id(int) : Order
+        + get_orders_from_mysql(int) : Order[]
+        + get_orders_from_redis(int) : Order[]
+        + get_highest_spending_users() : string
+        + get_best_selling_products() : string
+    }
+
+    class OrderController {
+        + create_order(int, OrderItem[]) : int
+        + remove_order(int) : int
+        + list_orders_from_mysql(int) : Order[]
+        + list_orders_from_redis(int) : Order[]
+        + populate_redis_from_mysql() : void
+        + get_report_highest_spending_users() : string
+        + get_report_highest_best_sellers() : string
+    }
+
+    OrderItem <-- Order
+    User --> Order
+    Product --> OrderItem
+    WriteOrder --> Order
+    WriteOrder --> OrderItem
+    WriteOrder --> Product
+    OrderController --> WriteOrder
+    OrderController --> ReadOrder
+@enduml

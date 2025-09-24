@@ -1,0 +1,40 @@
+services:
+  store_manager:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      DB_HOST: mysql        
+      DB_PORT: 3306
+      DB_USER: labo02
+      DB_PASSWORD: labo02
+      DB_NAME: labo02_db
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+
+    depends_on:
+      - mysql
+      - redis
+
+  mysql:
+    image: mysql:8
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: labo02_db
+      MYSQL_USER: labo02
+      MYSQL_PASSWORD: labo02
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./db-init:/docker-entrypoint-initdb.d
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+volumes:
+  mysql_data:

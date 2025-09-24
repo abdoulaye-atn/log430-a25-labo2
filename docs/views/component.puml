@@ -1,0 +1,35 @@
+@startuml
+package View {
+    [OrderView] 
+}
+
+package Controller {
+    [OrderController] 
+}
+
+package WriteModel {
+    [WriteOrder] 
+}
+
+package ReadModel {
+    [ReadOrder] 
+}
+
+package Model {
+    [Order] 
+    [OrderItem]
+}
+
+[OrderView] --> [OrderController] : Demander la création d'une commande
+[OrderController] --> [WriteOrder] : Créer une commande
+[WriteOrder] --> [OrderController] : Notifier le Controller
+[OrderController] --> [OrderView] : Mettre à jour la View 
+[WriteOrder] --> [Order] : Créer une commande 
+[Order] --> [WriteOrder] : Notifier le write model
+[WriteOrder] --> [OrderItem] : Créer les articles dans la commande 
+[OrderItem] --> [WriteOrder] : Notifier le write model
+[OrderController] --> [ReadOrder] : Chercher la liste de commandes
+[ReadOrder] --> [OrderController] : Notifier le Controller
+[ReadOrder] --> [Order] : Sélectionner les derniéres commandes
+[Order] --> [ReadOrder] : Notifier le read model
+@enduml

@@ -1,0 +1,18 @@
+@startuml
+    start
+        :Accéder au formulaire de commandes;
+        note left : De même, nous pouvons accéder au formulaire d'utilisateurs et d'articles
+        if (Ajouter une commande) then (oui)
+            :Ajouter un utilisateur à la commande;
+            :Ajouter les articles à la commande;
+            :Confirmer la commande;
+        elseif (Supprimer une commande) then (oui) 
+            :Choisir une commande;
+            :Confirmer la suppression;
+        elseif (Voir rapport : les plus gros acheteurs) then (oui)
+            :Voir le rapport;
+        elseif (Voir rapport : articles les plus vendus) then (oui) 
+            :Voir le rapport;
+        endif
+    stop
+@enduml
