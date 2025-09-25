@@ -3,6 +3,7 @@ Orders (write-only model)
 SPDX - License - Identifier: LGPL - 3.0 - or -later
 Auteurs : Gabriel C. Ullmann, Fabio Petrillo, 2025
 """
+import json
 from models.product import Product
 from models.order_item import OrderItem
 from models.order import Order
@@ -97,14 +98,54 @@ def delete_order(order_id: int):
     finally:
         session.close()
 
+#QUESTION 3
 def add_order_to_redis(order_id, user_id, total_amount, items):
     """Insert order to Redis"""
     r = get_redis_conn()
-    print(r)
+    key = f"order:{order_id}"
 
+    # (optionnel) si la clé existe déjà, on peut sortir pour rester idempotent
+    # if r.exists(key):
+    #     return 0
+
+    pipe = r.pipeline()
+    # 1) hash de la commande
+    pipe.hset(key, mapping={
+        "id": int(order_id),
+        "user_id": int(user_id),
+        "total_amount": float(total_amount),
+        "items": json.dumps(items, ensure_ascii=False)  # pratique pour l’affichage/rapports
+    })
+    # 2) index trié des commandes (score = id → récup des N dernières via ZREVRANGE)
+    pipe.zadd("orders:index", {key: int(order_id)})
+    
+    #############################################
+    ################## QUESTION 6 ################
+    # incrémenter les compteurs par produit
+    for it in items:
+        pid = int(it["product_id"])
+        qty = int(float(it["quantity"]))
+        pipe.incrby(f"product:{pid}:sold_qty", qty)
+    #############################################
+
+    pipe.execute()
+    return 1
+
+
+#QUESTION 4
 def delete_order_from_redis(order_id):
     """Delete order from Redis"""
-    pass
+    r = get_redis_conn()
+    key = f"order:{order_id}"
+
+    pipe = r.pipeline()
+    # 1) retirer la clé de l'index trié
+    pipe.zrem("orders:index", key)
+    # 2) supprimer le hash de la commande
+    pipe.delete(key)
+    pipe.execute()
+    return 1  # idempotent : même si la clé n'existait pas, on considère OK
+
 
 def sync_all_orders_to_redis():
     """ Sync orders from MySQL to Redis """
@@ -115,10 +156,18 @@ def sync_all_orders_to_redis():
     try:
         if len(orders_in_redis) == 0:
             # mysql
-            orders_from_mysql = []
+            orders_from_mysql = get_orders_from_mysql(limit=9999) or []
+            pipe = r.pipeline()
             for order in orders_from_mysql:
-                # TODO: terminez l'implementation
-                print(order)
+                key = f"order:{order.id}"
+                pipe.hset(key, mapping={
+                    "id": int(order.id),
+                    "user_id": int(order.user_id),
+                    "total_amount": float(order.total_amount)
+                })
+                pipe.zadd("orders:index", {key: int(order.id)})
+            if orders_from_mysql:
+                pipe.execute()
             rows_added = len(orders_from_mysql)
         else:
             print('Redis already contains orders, no need to sync!')

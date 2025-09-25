@@ -12,10 +12,11 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_DB: 0
-
-    depends_on:
-      - mysql
-      - redis
+    ports:
+      - "5000:5000"
+    #depends_on:
+      #- mysql
+      #- redis
 
   mysql:
     image: mysql:8

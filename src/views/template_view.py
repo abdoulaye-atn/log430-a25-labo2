@@ -13,7 +13,7 @@ def show_main_menu():
         <nav>
             <h2>Formulaires d'enregistrement</h2>
             <ul class="list-group">
-                <li class="list-group-item"><a href="/users">Utilisateurs</a></li>
+                <li class="list-group-item"><a href="/user">Utilisateurs</a></li>
                 <li class="list-group-item"><a href="/products">Articles</a></li>
                 <li class="list-group-item"><a href="/orders">Commandes</a></li>
             </ul>

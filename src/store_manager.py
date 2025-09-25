@@ -6,6 +6,7 @@ Auteurs : Gabriel C. Ullmann, Fabio Petrillo, 2025
 import os
 from urllib.parse import parse_qs
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from controllers.order_controller import populate_redis_from_mysql
 from views.template_view import show_main_menu, show_404_page
 from views.user_view import show_user_form, register_user, remove_user
 from views.product_view import show_product_form, register_product, remove_product
@@ -93,6 +94,14 @@ class StoreManager(BaseHTTPRequestHandler):
         self.wfile.write(html.encode("utf-8"))
 
 if __name__ == "__main__":
+
+     #QUESTION 1
+    try:
+        populate_redis_from_mysql()
+        print("[startup] Toutes les commandes sont chargées depuis MySQL vers Redis")
+    except Exception as e:
+        print(f"[startup] Erreur de chargement de Redis : {e}")
+
     server = HTTPServer(("0.0.0.0", 5000), StoreManager)
     print("Server running on http://0.0.0.0:5000")
     server.serve_forever()

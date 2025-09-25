@@ -5,22 +5,29 @@ Auteurs : Gabriel C. Ullmann, Fabio Petrillo, 2025
 """
 import numbers
 from views.template_view import get_template, get_param
-from controllers.order_controller import create_order, delete_order, list_orders_from_mysql
+from controllers.order_controller import create_order, delete_order, list_orders_from_mysql, list_orders_from_redis
 from controllers.product_controller import list_products
 from controllers.user_controller import list_users
 
 def show_order_form():
+
+
+    #QUESTION 2
     """ Show order form and list """
     # TODO: utilisez Redis seulement
-    orders = list_orders_from_mysql(10)
+    #orders = list_orders_from_mysql(10)
+    orders = list_orders_from_redis(10)
     products = list_products(99)
     users = list_users(99)
+
+    
     order_rows = [f"""
-            <tr>
-                <td>{order.id}</td>
-                <td>${order.total_amount}</td>
-                <td><a href="/orders/remove/{order.id}">Supprimer</a></td>
-            </tr> """ for order in orders]
+        <tr>
+            <td>{o.get('id')}</td>
+            <td>${o.get('total_amount')}</td>
+            <td><a href="/orders/remove/{o.get('id')}">Supprimer</a></td>
+        </tr> """ for o in orders]
+
     user_rows = [f"""<option key={user.id} value={user.id}>{user.name}</option>""" for user in users]
     product_rows = [f"""<option key={product.id} value={product.id}>{product.name} (${product.price})</option>""" for product in products]
     return get_template(f"""
