@@ -9,7 +9,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    # 🚀 Services requis par les tests
     services:
       redis:
         image: redis:7
@@ -25,6 +24,14 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          clean: true
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: ${{ runner.os }}-pip-
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -39,13 +46,13 @@ jobs:
 
       - name: Wait for services (quick)
         run: |
+          sudo apt-get update && sudo apt-get install -y netcat-openbsd mysql-client
           for i in {1..60}; do nc -z 127.0.0.1 6379 && break; sleep 1; done
           for i in {1..60}; do nc -z 127.0.0.1 3306 && break; sleep 1; done
           echo "Services up."
 
       - name: Seed DB (minimal)
         run: |
-          sudo apt-get update && sudo apt-get install -y mysql-client
           mysql -h 127.0.0.1 -uroot -proot <<'SQL'
           CREATE DATABASE IF NOT EXISTS labo02_db CHARACTER SET utf8mb4;
           CREATE USER IF NOT EXISTS 'labo02'@'%' IDENTIFIED BY 'labo02';
@@ -82,14 +89,13 @@ jobs:
 
   deploy:
     runs-on: self-hosted
-    needs: test         # ✅ le nom correct du job
-    if: github.ref == 'refs/heads/main'
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     steps:
-      - name: Nettoyer le workspace
-        run: sudo rm -rf ${{ github.workspace }}/* || true
-
-      - name: Checkout dépôt
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          clean: true
 
       - name: Déploiement Docker
+        working-directory: .
         run: docker compose up -d --build --remove-orphans
