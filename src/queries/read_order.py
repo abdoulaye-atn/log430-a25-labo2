@@ -14,11 +14,10 @@ from models.order import Order
 def get_order_by_id(order_id):
     """Get order by ID from Redis"""
     r = get_redis_conn()
-    key = f"order:{order_id}"             # clé normalisée
+    key = f"order:{order_id}"            
     raw = r.hgetall(key)
     if not raw:
         return {}
-    # normaliser types
     return {
         "id": int(raw.get(b"id", b"0")),
         "user_id": int(float(raw.get(b"user_id", b"0"))),
@@ -36,11 +35,9 @@ def get_orders_from_mysql(limit=9999):
 def get_orders_from_redis(limit=9999):
     """Get last X orders"""
     r = get_redis_conn()
-    # dernières commandes d’abord
     keys = r.zrevrange("orders:index", 0, max(0, limit-1))
     results = []
     for k in keys:
-        # k est le nom de la clé (b'order:123'), on lit le hash
         raw = r.hgetall(k)
         if not raw:
             continue
@@ -57,7 +54,6 @@ def get_orders_from_redis(limit=9999):
 def get_highest_spending_users(limit=10):
     """Get report of best selling products"""
     # TODO: écrivez la méthode
-    # triez le résultat par nombre de commandes (ordre décroissant)
     r = get_redis_conn()
     keys = r.zrevrange("orders:index", 0, -1)
 
@@ -67,7 +63,6 @@ def get_highest_spending_users(limit=10):
         return str(v)
 
     def hget2(d, key):
-        # lit d[key] en acceptant str ou bytes
         if key in d:
             return d[key]
         bkey = key.encode() if isinstance(key, str) else key
@@ -109,7 +104,6 @@ def get_best_selling_products(limit=10):
     cursor = 0
     pattern = "product:*:sold_qty"
 
-    # SCAN pour éviter de tout charger d'un coup
     while True:
         cursor, batch = r.scan(cursor=cursor, match=pattern, count=500)
         keys.extend(batch)
@@ -119,7 +113,6 @@ def get_best_selling_products(limit=10):
     if not keys:
         return []
 
-    # Récupérer les compteurs
     pipe = r.pipeline()
     for k in keys:
         pipe.get(k)
@@ -130,13 +123,11 @@ def get_best_selling_products(limit=10):
         if v is None:
             continue
 
-        # normaliser clé -> string
         if isinstance(k, bytes):
             name = k.decode()
         else:
             name = k
 
-        # name: "product:{pid}:sold_qty"
         parts = name.split(":")
         if len(parts) >= 3:
             try:
@@ -146,7 +137,6 @@ def get_best_selling_products(limit=10):
         else:
             continue
 
-        # normaliser valeur -> int
         if isinstance(v, bytes):
             try:
                 qty = int(v.decode())
@@ -160,6 +150,5 @@ def get_best_selling_products(limit=10):
 
         results.append((pid, qty))
 
-    # trier par quantité décroissante et limiter
     results.sort(key=lambda t: t[1], reverse=True)
     return results[:limit]

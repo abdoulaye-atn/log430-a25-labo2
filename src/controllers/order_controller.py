@@ -36,7 +36,6 @@ def list_orders_from_redis(limit):
     """Get last X orders from Redis, use ReadOrder model"""
     try:
         #QUESTION 2
-        #return get_orders_from_mysql(limit)
         return get_orders_from_redis(limit)
     except Exception as e:
         print(e)
